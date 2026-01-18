@@ -1,0 +1,5 @@
+{
+  "name": "TradeFlow ERP",
+  "description": "A verticalized ERP/WMS for international trade, featuring landed cost calculation, FEFO inventory management, and complete batch traceability.",
+  "requestFramePermissions": []
+}
