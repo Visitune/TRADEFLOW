@@ -367,7 +367,7 @@ const PurchasingView = ({ pos, products, partners, onUpdate, onCreate, t }: any)
                         </tbody>
                         <tfoot className="bg-gray-50 font-bold">
                             <tr>
-                                <td colSpan={3} className="p-3 text-right">Total FOB</td>
+                                <td colSpan={3} className="p-3 text-right">{t('total_fob')}</td>
                                 <td className="p-3 text-right">
                                     {editingPO.items?.reduce((acc: number, i: any) => acc + (i.quantity_cases * i.price_unit), 0).toLocaleString()}
                                 </td>
@@ -729,6 +729,12 @@ const SalesView = ({ sales, products, partners, onUpdate, onCreate, t }: any) =>
         setEditingSO({ ...editingSO, items: newItems });
     };
 
+    const handleGenerateBOL = (so: SalesOrder) => {
+        if (confirm(`Generate BOL for ${so.so_number}? This will update status to BOL_GENERATED.`)) {
+            onUpdate({ ...so, status: SOStatus.BOL_GENERATED });
+        }
+    };
+
     const clients = partners.filter((p:any) => p.type === PartnerType.CLIENT);
 
     return (
@@ -782,7 +788,10 @@ const SalesView = ({ sales, products, partners, onUpdate, onCreate, t }: any) =>
                                 </button>
                                 {/* Quick Actions */}
                                 {so.status === 'booking' && (
-                                    <button className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 hover:bg-indigo-100">
+                                    <button 
+                                        onClick={() => handleGenerateBOL(so)}
+                                        className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded border border-indigo-100 hover:bg-indigo-100 cursor-pointer"
+                                    >
                                         {t('create_bol')}
                                     </button>
                                 )}
@@ -915,7 +924,7 @@ const SalesView = ({ sales, products, partners, onUpdate, onCreate, t }: any) =>
                                 </tbody>
                                 <tfoot className="bg-gray-50 font-bold">
                                     <tr>
-                                        <td colSpan={3} className="p-3 text-right">Total</td>
+                                        <td colSpan={3} className="p-3 text-right">{t('total')}</td>
                                         <td className="p-3 text-right">
                                             {editingSO.items?.reduce((acc: number, i: any) => acc + (i.quantity * i.unit_price), 0).toLocaleString()}
                                         </td>
@@ -1264,7 +1273,7 @@ const UserGuideView = ({ lang, t }: { lang: Language, t: any }) => {
                    <p>The sales workflow starts with a Booking.</p>
                    <ol className="list-decimal pl-5 space-y-2">
                       <li>Create a Booking for a client. Prices default to the Product's SRP (Suggested Retail Price).</li>
-                      <li><strong>Status Flow:</strong> Booking -> Confirmed -> BOL Generated -> Invoiced.</li>
+                      <li><strong>Status Flow:</strong> Booking &rarr; Confirmed &rarr; BOL Generated &rarr; Invoiced.</li>
                    </ol>
                    <p className="mt-4"><strong>Bill of Lading (BOL):</strong> When an order is ready to ship, click "Generate BOL". This deducts inventory from "Available" to "Consumed" (conceptually) upon shipping.</p>
               </div>
@@ -1274,7 +1283,7 @@ const UserGuideView = ({ lang, t }: { lang: Language, t: any }) => {
                    <p>Le flux de vente commence par une Réservation (Booking).</p>
                    <ol className="list-decimal pl-5 space-y-2">
                       <li>Créez une réservation pour un client. Les prix sont par défaut le Prix de Détail Suggéré (SRP).</li>
-                      <li><strong>Flux de Statut :</strong> Booking -> Confirmé -> BOL Généré -> Facturé.</li>
+                      <li><strong>Flux de Statut :</strong> Booking &rarr; Confirmé &rarr; BOL Généré &rarr; Facturé.</li>
                    </ol>
                    <p className="mt-4"><strong>Bill of Lading (BOL):</strong> Quand une commande est prête, cliquez sur "Générer BOL".</p>
               </div>
@@ -1288,7 +1297,7 @@ const UserGuideView = ({ lang, t }: { lang: Language, t: any }) => {
                   <h3 className="text-lg font-bold text-gray-800">Accounts Receivable (AR)</h3>
                   <p>Track unpaid invoices in the Finance module.</p>
                   <ul className="list-disc pl-5 space-y-1">
-                      <li><strong>Aging:</strong> Invoices older than 30 days are highlighted in orange, and >60 days in red.</li>
+                      <li><strong>Aging:</strong> Invoices older than 30 days are highlighted in orange, and &gt;60 days in red.</li>
                       <li><strong>Payments:</strong> Mark invoices as "Paid" to clear the balance.</li>
                   </ul>
               </div>
@@ -1297,7 +1306,7 @@ const UserGuideView = ({ lang, t }: { lang: Language, t: any }) => {
                   <h3 className="text-lg font-bold text-gray-800">Comptes Clients (AR)</h3>
                   <p>Suivez les factures impayées dans le module Finance.</p>
                   <ul className="list-disc pl-5 space-y-1">
-                      <li><strong>Retards :</strong> Les factures de plus de 30 jours sont en orange, >60 jours en rouge.</li>
+                      <li><strong>Retards :</strong> Les factures de plus de 30 jours sont en orange, &gt;60 jours en rouge.</li>
                       <li><strong>Paiements :</strong> Marquez les factures comme "Payées" pour solder la balance.</li>
                   </ul>
               </div>
@@ -1759,8 +1768,19 @@ const App = () => {
   const [lang, setLang] = useState<Language>('en');
   const t = useTranslation(lang);
   
-  // User Profile State
-  const [userProfile, setUserProfile] = useState({ name: 'John Doe', role: 'admin' });
+  // User Profile State (Persistent)
+  const [userProfile, setUserProfile] = useState(() => {
+    try {
+      const saved = localStorage.getItem('userProfile');
+      return saved ? JSON.parse(saved) : { name: 'John Doe', role: 'admin' };
+    } catch {
+      return { name: 'John Doe', role: 'admin' };
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('userProfile', JSON.stringify(userProfile));
+  }, [userProfile]);
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{

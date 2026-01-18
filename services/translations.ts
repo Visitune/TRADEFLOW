@@ -126,7 +126,8 @@ export const translations = {
     // Common
     filter: "Filter",
     new_order: "New Order",
-    details: "Details"
+    details: "Details",
+    total: "Total"
   },
   fr: {
     dashboard: "Tableau de Bord",
@@ -255,7 +256,8 @@ export const translations = {
     // Common
     filter: "Filtrer",
     new_order: "Nouvelle Commande",
-    details: "Détails"
+    details: "Détails",
+    total: "Total"
   }
 };
 
